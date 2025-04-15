@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Note Sharing - Digital Classroom</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-blue-50 to-purple-100 min-h-screen text-gray-800">
+
+  <nav class="bg-blue-600 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">Class Connect</h1>
+      <ul class="flex space-x-4">
+        <li><a href="index.html" class="px-2 hover:underline">Home</a></li>
+        <li><a href="notes.html" class="px-2 hover:underline">Notes</a></li>
+        <li><a href="quizzes.html" class="px-2 hover:underline">Quizzes</a></li>
+        <a href="discussion.html" class="px-2 hover:underline">Discussion</a>
+        <a href="aboutus.html" class="px-2 hover:underline">About us</a>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container mx-auto p-6">
+    <section class="mb-6">
+      <h2 class="text-2xl font-semibold mb-4">Share a Note</h2>
+      <form id="noteForm" class="bg-white p-4 rounded shadow">
+        <div class="mb-4">
+          <label for="title" class="block font-medium">Title</label>
+          <input type="text" id="title" name="title" required class="w-full p-2 border rounded" />
+        </div>
+        <div class="mb-4">
+          <label for="content" class="block font-medium">Content</label>
+          <textarea id="content" name="content" required class="w-full p-2 border rounded"></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="author" class="block font-medium">Your Name</label>
+          <input type="text" id="author" name="author" required class="w-full p-2 border rounded" />
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit</button>
+      </form>
+    </section>
+    <section class="mb-6">
+      <h2 class="text-2xl font-semibold mb-4">Upload Notes</h2>
+  
+      <form action="upload.php" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded shadow-md mb-8">
+        <label class="block text-gray-700 font-semibold mb-2">Note Title</label>
+        <input type="text" name="title" required class="w-full border border-gray-300 p-2 rounded mb-4">
+  
+        <label class="block text-gray-700 font-semibold mb-2">Upload PDF</label>
+        <input type="file" name="note_file" accept="application/pdf" required class="w-full border border-gray-300 p-2 rounded mb-4">
+  
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Upload Note</button>
+      </form>
+      </section>
+    <section>
+      <h2 class="text-2xl font-semibold mb-4">Shared Notes</h2>
+      <div id="notesContainer" class="space-y-4">
+        <!-- Notes will appear here -->
+      </div>
+    </section>
+  </main>
+
+  <!-- <script>
+    document.getElementById('noteForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch('notes.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Note submission failed');
+
+        const note = await response.json();
+
+        const container = document.getElementById('notesContainer');
+        const noteDiv = document.createElement('div');
+        noteDiv.className = 'p-4 border rounded bg-gray-50 mb-4';
+        noteDiv.innerHTML = `
+          <h3 class="text-lg font-semibold">${note.title}</h3>
+          <p class="mb-2">${note.content}</p>
+          <p class="text-sm text-gray-600">Shared by: ${note.author} on ${note.timestamp}</p>
+        `;
+        container.prepend(noteDiv);
+
+        form.reset();
+      } catch (error) {
+        console.error(error);
+        alert("Error saving your note.");
+      }
+    });
+  </script> -->
+  <script>
+    // Global variables for edit state
+    let editState = {
+        isEditing: false,
+        cancelBtn: null,
+        originalSubmitHandler: null,
+        tempSubmitHandler: null
+    };
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', function() {
+        setupForm();
+        fetchNotes();
+    });
+
+    // Set up the form with initial event listeners
+    function setupForm() {
+        const form = document.getElementById('noteForm');
+        editState.originalSubmitHandler = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            
+            try {
+                const res = await fetch('notes.php?action=add', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!res.ok) throw new Error('Failed to submit note');
+                form.reset();
+                fetchNotes();
+            } catch (err) {
+                console.error(err);
+                alert("Error saving your note.");
+            }
+        };
+        
+        form.addEventListener('submit', editState.originalSubmitHandler);
+        
+        // Create cancel button once and hide it initially
+        editState.cancelBtn = document.createElement('button');
+        editState.cancelBtn.type = 'button';
+        editState.cancelBtn.textContent = 'Cancel';
+        editState.cancelBtn.className = 'ml-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 hidden';
+        editState.cancelBtn.onclick = cancelEdit;
+        
+        // Insert cancel button after submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.parentNode.insertBefore(editState.cancelBtn, submitBtn.nextSibling);
+    }
+
+    // Load all notes
+    async function fetchNotes() {
+        try {
+            const res = await fetch('notes.php?action=read');
+            const notes = await res.json();
+            const container = document.getElementById('notesContainer');
+            container.innerHTML = '';
+
+            notes.reverse().forEach(note => {
+                const noteDiv = document.createElement('div');
+                noteDiv.className = 'p-4 border rounded bg-gray-50 mb-4';
+                noteDiv.innerHTML = `
+                    <h3 class="text-lg font-semibold">${note.title}</h3>
+                    <p class="mb-2">${note.content}</p>
+                    <p class="text-sm text-gray-600">Shared by: ${note.author} on ${note.timestamp}</p>
+                    <div class="mt-2 flex gap-2">
+                        <button onclick="editNote('${note.id}')" class="px-3 py-1 text-sm bg-yellow-400 rounded hover:bg-yellow-500">Edit</button>
+                        <button onclick="deleteNote('${note.id}')" class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+                    </div>
+                `;
+                container.appendChild(noteDiv);
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Delete note by ID
+    async function deleteNote(id) {
+        if (!confirm("Are you sure you want to delete this note?")) return;
+
+        try {
+            const res = await fetch(`notes.php?action=delete&id=${id}`, { method: 'GET' });
+            if (!res.ok) throw new Error('Delete failed');
+            fetchNotes();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Edit note by ID
+    async function editNote(id) {
+        // If already editing this note, do nothing
+        if (editState.isEditing) return;
+        
+        // Fetch the note to edit
+        const res = await fetch(`notes.php?action=get&id=${id}`);
+        const note = await res.json();
+
+        // Fill the form with the existing note data
+        document.getElementById('title').value = note.title;
+        document.getElementById('content').value = note.content.replace(/<br\s*\/?>/gi, '\n');
+        document.getElementById('author').value = note.author;
+
+        // Change submit button to indicate edit mode
+        const submitBtn = document.querySelector('#noteForm button[type="submit"]');
+        submitBtn.textContent = 'Update Note';
+        submitBtn.classList.replace('bg-blue-500', 'bg-green-500');
+        submitBtn.classList.replace('hover:bg-blue-600', 'hover:bg-green-600');
+        
+        // Show cancel button
+        editState.cancelBtn.classList.remove('hidden');
+
+        // Create submit handler for editing
+        editState.tempSubmitHandler = async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            formData.append('id', id);
+
+            try {
+                const res = await fetch('notes.php?action=edit', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!res.ok) throw new Error('Edit failed');
+                
+                cancelEdit();
+                fetchNotes();
+                form.reset();
+            } catch (err) {
+                console.error(err);
+                alert('Failed to edit note.');
+            }
+        };
+
+        // Update edit state
+        editState.isEditing = true;
+        
+        // Switch form handler
+        const form = document.getElementById('noteForm');
+        form.removeEventListener('submit', editState.originalSubmitHandler);
+        form.addEventListener('submit', editState.tempSubmitHandler);
+    }
+
+    // Cancel edit mode
+    function cancelEdit() {
+        if (!editState.isEditing) return;
+        
+        const form = document.getElementById('noteForm');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        // Restore original button state
+        submitBtn.textContent = 'Add Note';
+        submitBtn.classList.replace('bg-green-500', 'bg-blue-500');
+        submitBtn.classList.replace('hover:bg-green-600', 'hover:bg-blue-600');
+        
+        // Hide cancel button
+        editState.cancelBtn.classList.add('hidden');
+        
+        // Restore original form handler
+        form.removeEventListener('submit', editState.tempSubmitHandler);
+        form.addEventListener('submit', editState.originalSubmitHandler);
+        
+        // Clear form
+        form.reset();
+        
+        // Update edit state
+        editState.isEditing = false;
+    }
+
+    // Make functions available globally
+    window.editNote = editNote;
+    window.deleteNote = deleteNote;
+</script>
+
+</body>
+</html>

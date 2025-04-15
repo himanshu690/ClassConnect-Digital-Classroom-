@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quizzes - Digital Classroom</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script defer src="quiz.js"></script>
+</head>
+<body class="bg-gradient-to-r from-blue-50 to-purple-100 min-h-screen text-gray-800">
+  <nav class="bg-blue-600 text-white p-4 flex justify-between">
+    <div class="text-xl font-bold">Class Connect</div>
+    <div class="space-x-4">
+      <a href="index.html" class="px-2 hover:underline">Home</a>
+      <a href="notes.html" class="px-2 hover:underline">Notes</a>
+      <a href="quizzes.html" class="px-2 hover:underline">Quizzes</a>
+      <a href="discussion.html" class="px-2 hover:underline">Discussion</a>
+      <a href="aboutus.html" class="px-2 hover:underline">About us</a>
+    </div>
+  </nav>
+
+  <main class="p-6 max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">Quiz Portal</h1>
+
+    <!-- Create a Quiz -->
+    
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Create a New Quiz</h2>
+      <div class="bg-white p-6 rounded-lg shadow-md mb-4">
+      <form id="quizForm" class="space-y-4">
+        <input type="text" id="quizTitle" placeholder="Quiz Title" required class="w-full p-2 border rounded" />
+        <textarea id="quizQuestion" rows="2" placeholder="Enter Question" required class="w-full p-2 border rounded"></textarea>
+        <input type="text" id="optionA" placeholder="Option A" class="w-full p-2 border rounded" required />
+        <input type="text" id="optionB" placeholder="Option B" class="w-full p-2 border rounded" required />
+        <input type="text" id="optionC" placeholder="Option C" class="w-full p-2 border rounded" required />
+        <input type="text" id="optionD" placeholder="Option D" class="w-full p-2 border rounded" required />
+        <input type="text" id="correctAnswer" placeholder="Correct Answer (A/B/C/D)" class="w-full p-2 border rounded" required />
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Add Question</button>
+      </form>
+    </section>
+    </div>
+
+    <!-- Available Quizzes -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Available Quizzes</h2>
+      <div id="quizList" class="space-y-4"></div>
+    </section>
+
+    <!-- Attempt Quiz -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Attempt a Quiz</h2>
+      <div id="quizAttemptSection" class="space-y-6"></div>
+    </section>
+  </main>
+</body>
+</html>

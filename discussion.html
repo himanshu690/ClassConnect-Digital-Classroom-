@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discussion Forum - Digital Classroom</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-blue-50 to-purple-100 min-h-screen text-gray-800">
+  <!-- Navigation Bar -->
+  <nav class="bg-blue-600 text-white p-4 flex justify-between shadow-md">
+    <div class="text-xl font-bold">Class Connect</div>
+    <div class="space-x-4">
+      <a href="index.html" class="px-2 hover:underline">Home</a>
+      <a href="notes.html" class="px-2 hover:underline">Notes</a>
+      <a href="quizzes.html" class="px-2 hover:underline">Quizzes</a>
+      <a href="discussion.html" class="px-2 hover:underline font-semibold">Discussion</a>
+      <a href="aboutus.html" class="px-2 hover:underline">About us</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">Discussion Room</h1>
+
+    <!-- New Post Form -->
+    <section class="mb-8 bg-white p-6 rounded-lg shadow-md fade-in">
+      <h2 class="text-2xl font-semibold mb-4">Ask a Question</h2>
+      <div class="space-y-4">
+        <input type="text" id="nameInput" placeholder="Your name" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+        <textarea id="questionInput" placeholder="Type your question here..." rows="3" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></textarea>
+        <button id="submitBtn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded shadow-md transition duration-200 transform hover:scale-105">
+          Post Question
+        </button>
+      </div>
+    </section>
+
+    <!-- All Discussions -->
+    <section class="fade-in">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-gray-700">Recent Discussions</h2>
+        <button id="refreshBtn" class="text-blue-500 hover:text-blue-700">
+          <i class="fas fa-sync-alt mr-1"></i> Refresh
+        </button>
+      </div>
+      <div id="loadingIndicator" class="text-center py-4 hidden">
+        <i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i>
+      </div>
+      <div id="discussionList" class="space-y-4"></div>
+      <div id="noDiscussions" class="text-center py-8 text-gray-500 hidden">
+        <i class="fas fa-comment-slash text-3xl mb-2"></i>
+        <p>No discussions yet. Be the first to post!</p>
+      </div>
+    </section>
+
+    <!-- Reply Modal -->
+    <div id="replyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md transform transition-all duration-300 scale-95">
+        <h3 class="text-xl font-semibold mb-4">Post a Reply</h3>
+        <input type="hidden" id="currentDiscussionId">
+        <input type="text" id="replyNameInput" placeholder="Your name" class="w-full p-3 border border-gray-300 rounded mb-3 focus:ring-2 focus:ring-blue-500" required>
+        <textarea id="replyContentInput" placeholder="Type your reply here..." rows="3" class="w-full p-3 border border-gray-300 rounded mb-4 focus:ring-2 focus:ring-blue-500" required></textarea>
+        <div class="flex justify-end space-x-3">
+          <button id="cancelReplyBtn" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition duration-200">Cancel</button>
+          <button id="submitReplyBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200">Post Reply</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // State management
+    const state = {
+      currentUser: localStorage.getItem('discussionUsername') || '',
+      isEditing: false,
+      currentEditId: null
+    };
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeUser();
+      setupEventListeners();
+      fetchDiscussions();
+    });
+
+    function initializeUser() {
+      if (state.currentUser) {
+        document.getElementById('nameInput').value = state.currentUser;
+        document.getElementById('replyNameInput').value = state.currentUser;
+      }
+    }
+
+    function setupEventListeners() {
+      // Form submission
+      document.getElementById('submitBtn').addEventListener('click', postNewQuestion);
+      document.getElementById('refreshBtn').addEventListener('click', fetchDiscussions);
+      
+      // Reply modal
+      document.getElementById('cancelReplyBtn').addEventListener('click', closeReplyModal);
+      document.getElementById('submitReplyBtn').addEventListener('click', postReply);
+      
+      // Remember username
+      document.getElementById('nameInput').addEventListener('change', (e) => {
+        state.currentUser = e.target.value.trim();
+        localStorage.setItem('discussionUsername', state.currentUser);
+        document.getElementById('replyNameInput').value = state.currentUser;
+      });
+    }
+
+    // Fetch discussions with loading state
+    async function fetchDiscussions() {
+      showLoading(true);
+      try {
+        const response = await fetch('discussion.php');
+        
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid data received from server');
+        }
+        
+        renderDiscussions(data);
+      } catch (error) {
+        showError(error);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function renderDiscussions(discussions) {
+      const discussionList = document.getElementById('discussionList');
+      const noDiscussions = document.getElementById('noDiscussions');
+      
+      discussionList.innerHTML = '';
+      
+      if (discussions.length === 0) {
+        noDiscussions.classList.remove('hidden');
+        return;
+      }
+      
+      noDiscussions.classList.add('hidden');
+      
+      // Sort by time (newest first)
+      discussions.sort((a, b) => new Date(b.time) - new Date(a.time));
+      
+      discussions.forEach(discussion => {
+        const discussionItem = document.createElement('div');
+        discussionItem.className = 'bg-white border border-gray-300 p-4 rounded-lg shadow fade-in';
+        discussionItem.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-semibold text-lg">${escapeHTML(discussion.name)}</h3>
+              <p class="text-gray-600 text-sm mb-2">${formatTime(discussion.time)}</p>
+            </div>
+            <div class="flex space-x-2">
+              ${discussion.name === state.currentUser ? `
+                <button onclick="openEditDiscussion('${discussion.id}')" class="text-blue-500 hover:text-blue-700" title="Edit">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="deleteDiscussion('${discussion.id}')" class="text-red-500 hover:text-red-700" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+          <p class="my-3 whitespace-pre-wrap">${escapeHTML(discussion.question)}</p>
+          <button onclick="openReplyModal('${discussion.id}')" 
+                  class="text-sm text-blue-500 hover:underline mb-3 flex items-center">
+            <i class="fas fa-reply mr-1"></i> Reply
+          </button>
+          <div id="replies-${discussion.id}" class="border-t pt-3 mt-3 space-y-3"></div>
+        `;
+        
+        discussionList.appendChild(discussionItem);
+        fetchReplies(discussion.id);
+      });
+    }
+
+    async function fetchReplies(discussionId) {
+      try {
+        const response = await fetch(`get_replies.php?discussion_id=${discussionId}`);
+        
+        if (!response.ok) {
+          console.error('Failed to fetch replies');
+          return;
+        }
+        
+        const replies = await response.json();
+        renderReplies(discussionId, replies);
+      } catch (error) {
+        console.error('Error fetching replies:', error);
+      }
+    }
+
+    function renderReplies(discussionId, replies) {
+      const repliesContainer = document.getElementById(`replies-${discussionId}`);
+      if (!repliesContainer) return;
+
+      repliesContainer.innerHTML = '';
+
+      if (!replies || replies.length === 0) {
+        repliesContainer.innerHTML = '<p class="text-gray-500 text-sm">No replies yet</p>';
+        return;
+      }
+
+      // Sort replies by time (oldest first)
+      replies.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+      replies.forEach(reply => {
+        const replyItem = document.createElement('div');
+        replyItem.className = 'bg-gray-50 p-3 rounded-lg fade-in';
+        replyItem.innerHTML = `
+          <div class="flex justify-between">
+            <div>
+              <span class="font-medium text-sm">${escapeHTML(reply.author_name)}</span>
+              <span class="text-gray-500 text-xs ml-2">${formatTime(reply.time)}</span>
+            </div>
+            ${reply.author_name === state.currentUser ? `
+              <button onclick="deleteReply('${reply.id}', '${discussionId}')" 
+                      class="text-red-400 hover:text-red-600 text-xs" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            ` : ''}
+          </div>
+          <p class="mt-1 text-sm whitespace-pre-wrap">${escapeHTML(reply.content)}</p>
+        `;
+        repliesContainer.appendChild(replyItem);
+      });
+    }
+
+    async function postNewQuestion() {
+      const name = document.getElementById('nameInput').value.trim();
+      const question = document.getElementById('questionInput').value.trim();
+
+      if (!name || !question) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      showLoading(true);
+      try {
+        const response = await fetch('discussion.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, question })
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Failed to post question');
+        }
+
+        // Save username
+        state.currentUser = name;
+        localStorage.setItem('discussionUsername', name);
+        document.getElementById('replyNameInput').value = name;
+
+        // Clear form and refresh
+        document.getElementById('questionInput').value = '';
+        await fetchDiscussions();
+      } catch (error) {
+        showError(error);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function openReplyModal(discussionId) {
+      document.getElementById('currentDiscussionId').value = discussionId;
+      document.getElementById('replyModal').classList.remove('hidden');
+      document.getElementById('replyNameInput').value = state.currentUser;
+      document.getElementById('replyContentInput').focus();
+    }
+
+    function closeReplyModal() {
+      document.getElementById('replyModal').classList.add('hidden');
+      document.getElementById('replyContentInput').value = '';
+    }
+
+    async function postReply() {
+      const authorName = document.getElementById('replyNameInput').value.trim();
+      const content = document.getElementById('replyContentInput').value.trim();
+      const discussionId = document.getElementById('currentDiscussionId').value;
+
+      if (!authorName || !content) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      showLoading(true);
+      try {
+        const response = await fetch('post_reply.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            discussion_id: discussionId, 
+            author_name: authorName, 
+            content 
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Failed to post reply');
+        }
+
+        // Save username if changed
+        if (authorName !== state.currentUser) {
+          state.currentUser = authorName;
+          localStorage.setItem('discussionUsername', authorName);
+          document.getElementById('nameInput').value = authorName;
+        }
+
+        closeReplyModal();
+        fetchReplies(discussionId);
+      } catch (error) {
+        showError(error);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function openEditDiscussion(discussionId) {
+      const currentDiscussion = await fetchDiscussionById(discussionId);
+      if (!currentDiscussion) return;
+
+      const newQuestion = prompt('Edit your question:', currentDiscussion.question);
+      if (newQuestion && newQuestion.trim() !== '' && newQuestion !== currentDiscussion.question) {
+        showLoading(true);
+        try {
+          const response = await fetch('discussion.php', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              id: discussionId, 
+              question: newQuestion 
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update discussion');
+          }
+
+          fetchDiscussions();
+        } catch (error) {
+          showError(error);
+        } finally {
+          showLoading(false);
+        }
+      }
+    }
+
+    async function fetchDiscussionById(discussionId) {
+      try {
+        const response = await fetch(`discussion.php?id=${discussionId}`);
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching discussion:', error);
+        return null;
+      }
+    }
+
+    async function deleteDiscussion(discussionId) {
+      if (!confirm('Are you sure you want to delete this discussion?')) return;
+
+      showLoading(true);
+      try {
+        const response = await fetch(`discussion.php?id=${discussionId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete discussion');
+        }
+
+        fetchDiscussions();
+      } catch (error) {
+        showError(error);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function deleteReply(replyId, discussionId) {
+      if (!confirm('Are you sure you want to delete this reply?')) return;
+
+      showLoading(true);
+      try {
+        const response = await fetch(`post_reply.php?reply_id=${replyId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete reply');
+        }
+
+        fetchReplies(discussionId);
+      } catch (error) {
+        showError(error);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Helper functions
+    function escapeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function formatTime(timestamp) {
+      try {
+        const date = new Date(timestamp);
+        return date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return timestamp;
+      }
+    }
+
+    function showLoading(show) {
+      document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
+    }
+
+    function showError(error) {
+      console.error(error);
+      const errorElement = document.createElement('div');
+      errorElement.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
+      errorElement.innerHTML = `
+        <strong>Error:</strong> ${error.message || 'Something went wrong. Please try again.'}
+      `;
+      document.getElementById('discussionList').prepend(errorElement);
+      setTimeout(() => errorElement.remove(), 5000);
+    }
+  </script>
+</body>
+</html>

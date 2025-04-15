@@ -1,0 +1,91 @@
+<!-- home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Digital Classroom - Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+  
+</head>
+<body class="bg-gradient-to-r from-blue-50 to-purple-100 min-h-screen text-gray-800">
+  <nav class="bg-blue-600 text-white p-4 flex justify-between items-center ">
+    <h1 class="text-xl font-bold">Class Connect</h1>
+    <div class="space-x-4">
+      <a href="index.html" class="px-2 hover:underline">Home</a>
+      <a href="notes.html" class="px-2 hover:underline">Notes</a>
+      <a href="quizzes.html" class="px-2 hover:underline">Quizzes</a>
+      <a href="discussion.html" class="px-2 hover:underline">Discussion</a>
+      <a href="aboutus.html" class="px-2 hover:underline">About us</a>
+    </div>
+  </nav>
+
+
+
+  <section class="p-10 max-w-5xl mx-auto animate-fadeIn duration-75">
+    <h2 class="text-4xl font-bold text-center text-gray-800 mb-6">Welcome to the Digital Classroom</h2>
+    <p class="text-center text-gray-600 text-lg mb-10">
+      Empower your learning with shared notes, interactive quizzes, and collaborative discussions!
+    </p>
+    <section class="p-6 grid md:grid-cols-2 gap-6">
+      <div class="bg-white shadow-md rounded p-6 text-center interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+
+          <img src="img/notes.jpg" alt="Notes" class="rounded-lg w-full h-40 object-cover mb-2">
+          <h3 class="text-xl font-bold">Share Notes</h3>
+          <p>Upload and access notes easily with our note sharing system.</p>
+        </div>
+        <div class="bg-white shadow-md rounded-xl p-6 text-center interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+          <img src="img/quiz.jpg" alt="Quiz" class="rounded-lg w-full h-40 object-cover mb-2">
+          <h3 class="text-xl font-bold">Interactive Quizzes</h3>
+          <p>Test your knowledge with fun and engaging quizzes.</p>
+        </div>
+        <div class="bg-white shadow-md rounded-xl p-6 text-center interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+
+            <img src="img/discussion.jpg" alt="Discussion Portal" class="rounded-lg w-full h-40 object-cover mb-2">
+            <h3 class="text-xl font-semibold mb-2">Discussion Portal</h3>
+            <p class="text-gray-600">Engage in meaningful discussions with peers and teachers.</p>
+          </div>
+        </div>
+        <div class="bg-white shadow-md rounded-xl p-6 text-center interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+          <img src="img/video.jpg" alt="Discussion Portal" class="rounded-lg w-full h-40 object-cover mb-2">
+            <h3 class="text-2xl font-bold text-green-800 mb-2">🎥 New: Live Video Call Feature</h3>
+            <p class="text-gray-700">Connect face-to-face with teachers and classmates using our integrated <strong>Video Call</strong> tool for better engagement and collaboration.</p>
+        </div>
+      </section>
+
+    <div class="grid md:grid-cols-3 gap-8 mb-12">
+      <div class="bg-white shadow-md rounded-xl p-6 text-center interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+
+        <img src="img/notes.jpg" alt="Notes Sharing" class="w-32 h-32 mx-auto mb-4 rounded-lg w-full">
+        <h3 class="text-xl font-semibold mb-2"><a href="notes.html">Notes Sharing</a></h3>
+        <p class="text-gray-600">Easily upload and access shared class notes from anywhere.</p>
+      </div>
+      <div class="bg-white shadow-md rounded-xl p-6 text-center interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+
+        <img src="img/quiz-time.jpg" alt="Interactive Quizzes" class="w-32 h-32 mx-auto mb-4 rounded-lg w-full">
+        <h3 class="text-xl font-semibold mb-2"><a href="quizzes.html">Interactive Quizzes</a></h3>
+        <p class="text-gray-600">Test your knowledge and track your progress with engaging quizzes.</p>
+      </div>
+      <div class="bg-white shadow-md rounded-xl p-6 text-center interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+
+        <img src="img/discussion.jpg" alt="Discussion Portal" class="w-32 h-32 mx-auto mb-4 rounded-lg w-full">
+        <h3 class="text-xl font-semibold mb-2"><a href="discussion.html">Discussion Portal</a></h3>
+        <p class="text-gray-600">Students and teachers can collaborate, solve doubts, and discuss topics together.</p>
+      </div>
+    </div>
+
+    <div class="bg-blue-100 border-l-4 border-blue-600 p-6 rounded shadow interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+      <h3 class="text-2xl font-bold text-blue-800 mb-2">📢 New Feature: Live Discussions</h3>
+      <p class="text-gray-700">Join real-time conversations, clarify doubts, and build connections in our new <a href="discussion.html" class="text-blue-700 underline font-semibold">Discussion Portal</a>.</p>
+    </div><br><br>
+    <div class="bg-green-100 border-l-4 border-green-600 p-6 rounded shadow mb-6 interactive-card transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+      <h3 class="text-2xl font-bold text-green-800 mb-2">🎥 New: Live Video Call Feature</h3>
+      <p class="text-gray-700">Connect face-to-face with teachers and classmates using our integrated <strong><a href="https://www.zoom.com/" class="text-blue-700 underline font-semibold">Video Call</a></strong> tool for better engagement and collaboration.</p>
+    </div>
+  </section>
+
+  <footer class="bg-blue-600 text-white text-center p-4 mt-10">
+    &copy; 2025 Digital Classroom. All rights reserved.
+  </footer>
+</body>
+</html>

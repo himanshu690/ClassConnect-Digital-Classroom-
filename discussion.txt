@@ -1,0 +1,18 @@
+null
+null
+null
+null
+null
+null
+{"id":"67fa967aeba9a","time":"2025-04-14 07:07:06","name":"himanshu","question":"maths doubt"}
+{"id":"67fa97f6ef522","time":"2025-04-14 07:07:12","name":"hi","question":"clear","type":"post"}
+{"id":"67fa97fc64bcc","time":"2025-04-14 07:07:20","name":"hi","question":"wow","type":"post"}
+{"id":"67fa982f6fdc5","time":"2025-04-14 07:07:43","name":"hhh","question":"integration"}
+{"id":"67fc1c493b69a","time":"2025-04-13 22:24:50","name":"sumit","question":"maths doubt"}
+{"id":"67fc2026a98ed","time":"2025-04-14 07:07:51","name":"sumit","question":"probability"}
+{"id":"67fc20c37408e","time":"2025-04-14 08:29:05","name":"gffx","question":"p and c"}
+{"id":"67fcc5b088054","time":"2025-04-14 10:22:08","name":"frsfsrgr","question":"sfg"}
+{"id":"67fcc92440db4","time":"2025-04-14 18:44:00","name":"nbnbk","question":"hii"}
+{"id":"67fd3d5262427","time":"2025-04-14 18:52:34","name":"Sumit","question":"I have some doubt"}
+{"id":"67fd40eb98070","time":"2025-04-14 19:07:55","name":"hii","question":"abcd"}
+{"id":"67fd40f225fe1","time":"2025-04-14 19:08:02","name":"hello","question":"acbde"}
